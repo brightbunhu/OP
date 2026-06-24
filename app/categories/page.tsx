@@ -1,12 +1,29 @@
 import Link from 'next/link';
-import { categories } from '@/lib/site';
+import { prisma } from '@/lib/prisma';
 
 export const metadata = {
   title: 'Categories | OP Supermarket',
   description: 'Shop grocery categories to find fresh produce, bakery items, wellness products, and more.',
 };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const dbCategories = await prisma.category.findMany({
+    where: { deletedAt: null },
+    include: {
+      _count: {
+        select: {
+          products: {
+            where: {
+              status: 'ACTIVE',
+              deletedAt: null,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { name: 'asc' },
+  });
+
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="space-y-6">
@@ -19,15 +36,24 @@ export default function CategoriesPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {categories.map((category) => (
+          {dbCategories.map((category) => (
             <article key={category.slug} className="rounded-3xl border border-border bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
-              <div className="h-48 rounded-3xl bg-muted p-6 text-sm font-semibold text-muted-foreground">
-                {category.imageAlt}
+              <div className="h-48 rounded-3xl bg-muted p-6 text-sm font-semibold text-muted-foreground flex items-center justify-center overflow-hidden">
+                {category.imageUrl ? (
+                  <img src={category.imageUrl} alt={category.name} className="h-full w-full object-cover rounded-2xl" />
+                ) : (
+                  <span>{category.name} selection</span>
+                )}
               </div>
               <div className="mt-5 space-y-4">
                 <div className="space-y-1">
-                  <h2 className="text-xl font-semibold text-foreground">{category.name}</h2>
-                  <p className="text-sm leading-6 text-muted-foreground">{category.description}</p>
+                  <div className="flex justify-between items-baseline gap-2">
+                    <h2 className="text-xl font-semibold text-foreground truncate">{category.name}</h2>
+                    <span className="text-xs bg-muted px-2 py-0.5 rounded-md text-muted-foreground shrink-0">
+                      {category._count.products} products
+                    </span>
+                  </div>
+                  <p className="text-sm leading-6 text-muted-foreground line-clamp-2">{category.description}</p>
                 </div>
                 <Link href={`/categories/${category.slug}`} className="text-sm font-semibold text-primary hover:underline">
                   View category
@@ -40,3 +66,4 @@ export default function CategoriesPage() {
     </section>
   );
 }
+

@@ -49,7 +49,7 @@ export async function updateOrderStatus(orderId: string, status: string) {
 
   const order = await prisma.order.update({
     where: { id: orderId },
-    data: { status: status as any },
+    data: { status: status as 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'READY_FOR_PICKUP' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED' },
   });
 
   revalidatePath('/sales');
@@ -62,7 +62,7 @@ export async function updateOrderPaymentStatus(orderId: string, paymentStatus: s
 
   const order = await prisma.order.update({
     where: { id: orderId },
-    data: { paymentStatus: paymentStatus as any },
+    data: { paymentStatus: paymentStatus as 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' },
   });
 
   revalidatePath('/sales');

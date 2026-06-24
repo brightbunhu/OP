@@ -47,8 +47,8 @@ export const authConfig = {
           data: { lastLoginAt: new Date() },
         });
 
-        const roles = user.roles.map((role) => role.name);
-        const permissions = user.roles.flatMap((role) => {
+        const roles = user.roles.map((role: { name: string; permissions: unknown }) => role.name);
+        const permissions = user.roles.flatMap((role: { name: string; permissions: unknown }) => {
           if (Array.isArray(role.permissions)) {
             return role.permissions.filter((permission): permission is string => typeof permission === 'string');
           }
