@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireMinimumRole } from '@/lib/auth/guards';
-import { Prisma } from '@prisma/client';
 
 export async function createLead(formData: {
   name: string;
@@ -22,7 +21,7 @@ export async function createLead(formData: {
       email: formData.email,
       phone: formData.phone || null,
       status: formData.status,
-      value: formData.value ? new Prisma.Decimal(formData.value) : null,
+      value: formData.value || null,
       source: formData.source || null,
       notes: formData.notes || null,
       assignedToId: user.id, // assign to the current salesperson
