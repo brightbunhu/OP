@@ -2,6 +2,23 @@ import { requireMinimumRole } from '@/lib/auth/guards';
 import { prisma } from '@/lib/prisma';
 import ManagerDashboard from '@/components/manager/manager-dashboard';
 
+type ProductWithInventory = {
+  id: string;
+  name: string;
+  sku: string;
+  price: { toNumber: () => number } | number;
+  costPrice: { toNumber: () => number } | number | null;
+  inventory: {
+    quantityOnHand: number;
+    reorderLevel: number;
+    status: string;
+    warehouseLocation: string | null;
+  } | null;
+  category: {
+    name: string;
+  } | null;
+};
+
 export default async function ManagerPage() {
   const user = await requireMinimumRole('MANAGER');
 
@@ -253,7 +270,7 @@ export default async function ManagerPage() {
   };
 
   // Convert decimal price values to serializable strings for the client component
-  const serializedProducts = productsList.map(p => ({
+  const serializedProducts = productsList.map((p: ProductWithInventory) => ({
     id: p.id,
     name: p.name,
     sku: p.sku,

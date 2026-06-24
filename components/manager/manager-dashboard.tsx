@@ -64,9 +64,10 @@ export default function ManagerDashboard({ initialData }: ManagerDashboardProps)
       setRestockQty(prev => ({ ...prev, [productId]: 0 }));
       // Reload page data by window reload, or state is handled by Next.js revalidatePath
       window.location.reload();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setMessage(`Restock failed: ${err.message || 'Error occurred'}`);
+      const errorMessage = err instanceof Error ? err.message : 'Error occurred';
+      setMessage(`Restock failed: ${errorMessage}`);
     } finally {
       setRestockingId(null);
     }

@@ -2,19 +2,52 @@ import { requireMinimumRole } from '@/lib/auth/guards';
 import { prisma } from '@/lib/prisma';
 import SalesDashboard from '@/components/sales/sales-dashboard';
 
+type Lead = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  status: string;
+  value: { toNumber: () => number } | number | null;
+  source: string | null;
+  notes: string | null;
+  createdAt: Date;
+};
+
+type AssignedOrder = {
+  id: string;
+  orderNumber: string;
+  subtotal: { toNumber: () => number } | number;
+  grandTotal: { toNumber: () => number } | number;
+  status: string;
+  paymentStatus: string;
+  createdAt: Date;
+  user: {
+    name: string | null;
+    email: string;
+  } | null;
+};
+
+type CustomerWithOrders = {
+  id: string;
+  name: string | null;
+  email: string;
+  createdAt: Date;
+  _count: {
+    orders: number;
+  };
+  orders: Array<{
+    grandTotal: { toNumber: () => number } | number;
+  }>;
+};
+
 export default async function SalesPage() {
   const user = await requireMinimumRole('SALES');
 
   // 1. Fetch CRM Leads
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const leadsList = await (prisma as any).lead.findMany({
-    where: {
-      deletedAt: null,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
+  const leadsList = await prisma.$queryRaw<Array<Lead>>`
+    SELECT * FROM leads WHERE "deletedAt" IS NULL ORDER BY "createdAt" DESC
+  `;
 
   // 2. Fetch assigned orders for this salesperson
   const assignedOrders = await prisma.order.findMany({
@@ -131,12 +164,12 @@ export default async function SalesPage() {
 
   // Calculate statistics
   const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
-  const activeLeadsCount = leadsList.filter((l: any) => l.status !== 'CONVERTED' && l.status !== 'LOST').length;
-  const convertedLeads = leadsList.filter((l: any) => l.status === 'CONVERTED').length;
+  const activeLeadsCount = leadsList.filter((l: Lead) => l.status !== 'CONVERTED' && l.status !== 'LOST').length;
+  const convertedLeads = leadsList.filter((l: Lead) => l.status === 'CONVERTED').length;
   const conversionRate = leadsList.length > 0 ? (convertedLeads / leadsList.length) * 100 : 0;
 
   // Serialize Decimals and Date fields for safe client transfer
-  const serializedLeads = leadsList.map((lead: any) => ({
+  const serializedLeads = leadsList.map((lead: Lead) => ({
     id: lead.id,
     name: lead.name,
     email: lead.email,
@@ -148,7 +181,7 @@ export default async function SalesPage() {
     createdAt: lead.createdAt.toISOString(),
   }));
 
-  const serializedAssignedOrders = assignedOrders.map(order => ({
+  const serializedAssignedOrders = assignedOrders.map((order: AssignedOrder) => ({
     id: order.id,
     orderNumber: order.orderNumber,
     subtotal: order.subtotal.toString(),
@@ -157,20 +190,20 @@ export default async function SalesPage() {
     paymentStatus: order.paymentStatus,
     createdAt: order.createdAt.toISOString(),
     user: {
-      name: order.user.name,
-      email: order.user.email,
+      name: order.user?.name ?? 'Unknown',
+      email: order.user?.email ?? '',
     },
   }));
 
-  const serializedCustomers = customers.map(cust => ({
+  const serializedCustomers = customers.map((cust: CustomerWithOrders) => ({
     id: cust.id,
-    name: cust.name,
+    name: cust.name ?? 'Unknown',
     email: cust.email,
     createdAt: cust.createdAt.toISOString(),
     _count: {
       orders: cust._count.orders,
     },
-    orders: cust.orders.map(o => ({
+    orders: cust.orders.map((o) => ({
       grandTotal: o.grandTotal.toString(),
     })),
   }));

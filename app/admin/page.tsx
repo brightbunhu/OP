@@ -18,9 +18,17 @@ export default async function AdminPage() {
     take: 200,
   });
 
-  const users: AdminUser[] = rawUsers.map((u: any) => ({
+  const users: AdminUser[] = rawUsers.map((u: {
+    id: string;
+    name: string | null;
+    email: string;
+    status: string;
+    roles: Array<{ id: string; name: string }>;
+    createdAt: Date;
+    _count: { orders: number };
+  }) => ({
     id: u.id,
-    name: u.name,
+    name: u.name ?? '',
     email: u.email,
     status: u.status,
     roles: u.roles,
@@ -35,7 +43,14 @@ export default async function AdminPage() {
     orderBy: { name: 'asc' },
   });
 
-  const roles: AdminRole[] = rawRoles.map((r: any) => ({
+  const roles: AdminRole[] = rawRoles.map((r: {
+    id: string;
+    name: string;
+    description: string | null;
+    permissions: unknown;
+    _count: { users: number };
+    createdAt: Date;
+  }) => ({
     id: r.id,
     name: r.name,
     description: r.description ?? null,
@@ -51,12 +66,20 @@ export default async function AdminPage() {
     include: { actor: { select: { name: true, email: true } } },
   });
 
-  const auditLogs: AdminAuditLog[] = rawLogs.map((l: any) => ({
+  const auditLogs: AdminAuditLog[] = rawLogs.map((l: {
+    id: string;
+    action: string;
+    entityName: string;
+    entityId: string | null;
+    actor: { name: string | null; email: string } | null;
+    createdAt: Date;
+    ipAddress: string | null;
+  }) => ({
     id: l.id,
     action: l.action,
     entityName: l.entityName,
     entityId: l.entityId ?? null,
-    actor: l.actor ? { name: l.actor.name, email: l.actor.email } : null,
+    actor: l.actor ? { name: l.actor.name ?? 'System', email: l.actor.email } : null,
     createdAt: l.createdAt.toISOString(),
     ipAddress: l.ipAddress ?? null,
   }));
@@ -64,12 +87,12 @@ export default async function AdminPage() {
   // Aggregate stats
   const [totalOrders, totalRevenue, totalProducts] = await Promise.all([
     prisma.order.count(),
-    prisma.order.aggregate({ _sum: { grandTotal: true } }).then((r: any) => Number(r._sum.grandTotal ?? 0)),
+    prisma.order.aggregate({ _sum: { grandTotal: true } }).then((r: { _sum: { grandTotal: { toNumber: () => number } | null } }) => Number(r._sum.grandTotal?.toNumber?.() ?? 0)),
     prisma.product.count({ where: { deletedAt: null } }),
   ]);
 
-  const activeUsers = rawUsers.filter((u: any) => u.status === 'ACTIVE').length;
-  const suspendedUsers = rawUsers.filter((u: any) => u.status === 'SUSPENDED').length;
+  const activeUsers = rawUsers.filter((u: { status: string }) => u.status === 'ACTIVE').length;
+  const suspendedUsers = rawUsers.filter((u: { status: string }) => u.status === 'SUSPENDED').length;
 
   const stats: AdminStats = {
     totalUsers: rawUsers.length,
