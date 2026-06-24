@@ -10,58 +10,9 @@ import type {
 } from '@/components/admin/reports-dashboard';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import type { OrderWithDetails, ProductWithInventory, CustomerUser } from '@/types';
 
 export const dynamic = 'force-dynamic';
-
-// Types based on Prisma query results
-type OrderWithDetails = {
-  id: string;
-  orderNumber: string;
-  userId: string;
-  status: string;
-  paymentStatus: string;
-  grandTotal: { toNumber: () => number } | number;
-  createdAt: Date;
-  user: {
-    name: string | null;
-    email: string;
-    createdAt: Date;
-    status: string;
-  } | null;
-  items: Array<{
-    productId: string;
-    quantity: number;
-    lineTotal: { toNumber: () => number } | number;
-    product: {
-      costPrice: { toNumber: () => number } | number | null;
-      price: { toNumber: () => number } | number;
-      category: { name: string } | null;
-    } | null;
-  }>;
-};
-
-type ProductWithInventory = {
-  id: string;
-  name: string;
-  sku: string;
-  price: { toNumber: () => number } | number;
-  costPrice: { toNumber: () => number } | number | null;
-  status: string;
-  inventory: {
-    quantityOnHand: number;
-    reorderLevel: number;
-    status: string;
-  } | null;
-  category: { name: string } | null;
-};
-
-type CustomerUser = {
-  id: string;
-  name: string | null;
-  email: string;
-  createdAt: Date;
-  status: string;
-};
 
 export default async function ReportsPage() {
   // Ensure user is an admin

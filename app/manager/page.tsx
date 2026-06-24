@@ -1,23 +1,7 @@
 import { requireMinimumRole } from '@/lib/auth/guards';
 import { prisma } from '@/lib/prisma';
 import ManagerDashboard from '@/components/manager/manager-dashboard';
-
-type ProductWithInventory = {
-  id: string;
-  name: string;
-  sku: string;
-  price: { toNumber: () => number } | number;
-  costPrice: { toNumber: () => number } | number | null;
-  inventory: {
-    quantityOnHand: number;
-    reorderLevel: number;
-    status: string;
-    warehouseLocation: string | null;
-  } | null;
-  category: {
-    name: string;
-  } | null;
-};
+import type { ProductWithInventory } from '@/types';
 
 export default async function ManagerPage() {
   const user = await requireMinimumRole('MANAGER');

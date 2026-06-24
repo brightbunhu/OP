@@ -1,45 +1,7 @@
 import { requireMinimumRole } from '@/lib/auth/guards';
 import { prisma } from '@/lib/prisma';
 import SalesDashboard from '@/components/sales/sales-dashboard';
-
-type Lead = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  status: string;
-  value: { toNumber: () => number } | number | null;
-  source: string | null;
-  notes: string | null;
-  createdAt: Date;
-};
-
-type AssignedOrder = {
-  id: string;
-  orderNumber: string;
-  subtotal: { toNumber: () => number } | number;
-  grandTotal: { toNumber: () => number } | number;
-  status: string;
-  paymentStatus: string;
-  createdAt: Date;
-  user: {
-    name: string | null;
-    email: string;
-  } | null;
-};
-
-type CustomerWithOrders = {
-  id: string;
-  name: string | null;
-  email: string;
-  createdAt: Date;
-  _count: {
-    orders: number;
-  };
-  orders: Array<{
-    grandTotal: { toNumber: () => number } | number;
-  }>;
-};
+import type { Lead, AssignedOrder, CustomerWithOrders } from '@/types';
 
 export default async function SalesPage() {
   const user = await requireMinimumRole('SALES');

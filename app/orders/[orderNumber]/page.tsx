@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth/guards';
 import { getOrderByNumber } from '@/lib/order-service';
 import { formatCurrency } from '@/lib/site';
 import { ArrowLeft, Package, CheckCircle, Clock, Truck, Home, XCircle, Box } from 'lucide-react';
+import type { OrderItem } from '@/types';
 
 const ORDER_STATUSES = [
   { key: 'PENDING', label: 'Pending', icon: Clock, description: 'Order received and awaiting confirmation.' },
@@ -143,17 +144,7 @@ export default async function OrderTrackingPage({
               <h2 className="text-lg font-semibold text-foreground">Order Items</h2>
             </div>
             <div className="divide-y divide-border">
-              {order.items.map((item: {
-                id: string;
-                productName: string;
-                sku: string;
-                quantity: number;
-                lineTotal: { toNumber: () => number } | number;
-                unitPrice: { toNumber: () => number } | number;
-                product: {
-                  imageUrl: string | null;
-                } | null;
-              }) => (
+              {order.items.map((item: OrderItem) => (
                 <div key={item.id} className="flex items-center gap-4 p-5">
                   {item.product?.imageUrl ? (
                     <img
