@@ -283,13 +283,13 @@ export default async function ReportsPage() {
       stock: p.inventory?.quantityOnHand || 0,
       status: p.status
     };
-  }).sort((a, b) => b.unitsSold - a.unitsSold);
+  }).sort((a: { unitsSold: number }, b: { unitsSold: number }) => b.unitsSold - a.unitsSold);
 
   const bestSellerProduct = productTableData[0]?.name || 'Fresh Organic Bananas';
-  const totalUnitsSold = productTableData.reduce((sum: number, p) => sum + p.unitsSold, 0) || 1240;
+  const totalUnitsSold = productTableData.reduce((sum: number, p: { unitsSold: number }) => sum + p.unitsSold, 0) || 1240;
   const outOfStockCount = products.filter((p: ProductWithInventory) => !p.inventory || p.inventory.quantityOnHand <= 0).length;
 
-  const productChartData = productTableData.slice(0, 8).map((p) => ({
+  const productChartData = productTableData.slice(0, 8).map((p: { name: string; unitsSold: number; revenue: number }) => ({
     name: p.name,
     unitsSold: p.unitsSold || Math.floor(Math.random() * 40) + 10,
     revenue: p.revenue || Math.floor(Math.random() * 400) + 100
@@ -394,12 +394,12 @@ export default async function ReportsPage() {
       totalSpent: Number(ordersStats.spend.toFixed(2)),
       status: c.status
     };
-  }).sort((a, b) => b.totalSpent - a.totalSpent);
+  }).sort((a: { totalSpent: number }, b: { totalSpent: number }) => b.totalSpent - a.totalSpent);
 
-  const activeCustomers = customerTableData.filter((c) => c.ordersCount > 0).length;
-  const returningCount = customerTableData.filter((c) => c.ordersCount > 1).length;
+  const activeCustomers = customerTableData.filter((c: { ordersCount: number }) => c.ordersCount > 0).length;
+  const returningCount = customerTableData.filter((c: { ordersCount: number }) => c.ordersCount > 1).length;
   const returningRate = customerTableData.length > 0 ? (returningCount / customerTableData.length) * 100 : 64.0;
-  const avgLtv = customerTableData.reduce((sum: number, c) => sum + c.totalSpent, 0) / (customerTableData.length || 1);
+  const avgLtv = customerTableData.reduce((sum: number, c: { totalSpent: number }) => sum + c.totalSpent, 0) / (customerTableData.length || 1);
 
   customersReport = {
     summary: {
