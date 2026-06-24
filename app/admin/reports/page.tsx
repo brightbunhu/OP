@@ -61,7 +61,7 @@ export default async function ReportsPage() {
 
   // 1. SALES REPORT DATA
   if (orders.length > 0) {
-    const totalSales = orders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
+    const totalSales = orders.reduce((sum: number, o: any) => sum + Number(o.grandTotal), 0);
     const avgOrderValue = totalSales / orders.length;
 
     // Group by month
@@ -236,7 +236,7 @@ export default async function ReportsPage() {
   }).sort((a, b) => b.unitsSold - a.unitsSold);
 
   const bestSellerProduct = productTableData[0]?.name || 'Fresh Organic Bananas';
-  const totalUnitsSold = productTableData.reduce((sum, p) => sum + p.unitsSold, 0) || 1240;
+  const totalUnitsSold = productTableData.reduce((sum: number, p: any) => sum + p.unitsSold, 0) || 1240;
   const outOfStockCount = products.filter(p => !p.inventory || p.inventory.quantityOnHand <= 0).length;
 
   const productChartData = productTableData.slice(0, 8).map(p => ({
@@ -267,7 +267,7 @@ export default async function ReportsPage() {
   };
 
   // 4. INVENTORY REPORT DATA
-  const totalInventoryValue = products.reduce((sum, p) => {
+  const totalInventoryValue = products.reduce((sum: number, p: any) => {
     const qty = p.inventory?.quantityOnHand || 0;
     const cost = Number(p.costPrice || p.price);
     return sum + (qty * cost);
@@ -349,7 +349,7 @@ export default async function ReportsPage() {
   const activeCustomers = customerTableData.filter(c => c.ordersCount > 0).length;
   const returningCount = customerTableData.filter(c => c.ordersCount > 1).length;
   const returningRate = customerTableData.length > 0 ? (returningCount / customerTableData.length) * 100 : 64.0;
-  const avgLtv = customerTableData.reduce((sum, c) => sum + c.totalSpent, 0) / (customerTableData.length || 1);
+  const avgLtv = customerTableData.reduce((sum: number, c: any) => sum + c.totalSpent, 0) / (customerTableData.length || 1);
 
   customersReport = {
     summary: {
