@@ -18,7 +18,7 @@ export default async function AdminPage() {
     take: 200,
   });
 
-  const users: AdminUser[] = rawUsers.map(u => ({
+  const users: AdminUser[] = rawUsers.map((u: any) => ({
     id: u.id,
     name: u.name,
     email: u.email,
@@ -35,7 +35,7 @@ export default async function AdminPage() {
     orderBy: { name: 'asc' },
   });
 
-  const roles: AdminRole[] = rawRoles.map(r => ({
+  const roles: AdminRole[] = rawRoles.map((r: any) => ({
     id: r.id,
     name: r.name,
     description: r.description ?? null,
@@ -51,7 +51,7 @@ export default async function AdminPage() {
     include: { actor: { select: { name: true, email: true } } },
   });
 
-  const auditLogs: AdminAuditLog[] = rawLogs.map(l => ({
+  const auditLogs: AdminAuditLog[] = rawLogs.map((l: any) => ({
     id: l.id,
     action: l.action,
     entityName: l.entityName,
