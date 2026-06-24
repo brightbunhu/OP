@@ -10,12 +10,18 @@ import type {
 } from '@/components/admin/reports-dashboard';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
-import type { Order, Product, User } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
 // Types based on Prisma query results
-type OrderWithDetails = Order & {
+type OrderWithDetails = {
+  id: string;
+  orderNumber: string;
+  userId: string;
+  status: string;
+  paymentStatus: string;
+  grandTotal: { toNumber: () => number } | number;
+  createdAt: Date;
   user: {
     name: string | null;
     email: string;
@@ -34,7 +40,13 @@ type OrderWithDetails = Order & {
   }>;
 };
 
-type ProductWithInventory = Product & {
+type ProductWithInventory = {
+  id: string;
+  name: string;
+  sku: string;
+  price: { toNumber: () => number } | number;
+  costPrice: { toNumber: () => number } | number | null;
+  status: string;
   inventory: {
     quantityOnHand: number;
     reorderLevel: number;
