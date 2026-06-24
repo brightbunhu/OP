@@ -3,6 +3,8 @@ import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 import { type AppRole, hasMinimumRole } from '@/lib/auth/roles';
 
+export const runtime = 'nodejs';
+
 const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/verify-email', '/unauthorized'];
 
 const protectedRouteMinimumRoles: Array<{ prefix: string; role: AppRole }> = [

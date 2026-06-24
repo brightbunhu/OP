@@ -10,8 +10,46 @@ import type {
 } from '@/components/admin/reports-dashboard';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import type { Order, Product, User } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
+
+// Types based on Prisma query results
+type OrderWithDetails = Order & {
+  user: {
+    name: string | null;
+    email: string;
+    createdAt: Date;
+    status: string;
+  } | null;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    lineTotal: { toNumber: () => number } | number;
+    product: {
+      costPrice: { toNumber: () => number } | number | null;
+      price: { toNumber: () => number } | number;
+      category: { name: string } | null;
+    } | null;
+  }>;
+};
+
+type ProductWithInventory = Product & {
+  inventory: {
+    quantityOnHand: number;
+    reorderLevel: number;
+    status: string;
+  } | null;
+  category: { name: string } | null;
+};
+
+type CustomerUser = {
+  id: string;
+  name: string | null;
+  email: string;
+  createdAt: Date;
+  status: string;
+};
 
 export default async function ReportsPage() {
   // Ensure user is an admin
@@ -61,12 +99,12 @@ export default async function ReportsPage() {
 
   // 1. SALES REPORT DATA
   if (orders.length > 0) {
-    const totalSales = orders.reduce((sum: number, o: any) => sum + Number(o.grandTotal), 0);
+    const totalSales = orders.reduce((sum: number, o: OrderWithDetails) => sum + Number(o.grandTotal), 0);
     const avgOrderValue = totalSales / orders.length;
 
     // Group by month
     const monthlyGroups: Record<string, { sales: number; orders: number }> = {};
-    orders.forEach((o: any) => {
+    orders.forEach((o: OrderWithDetails) => {
       const d = new Date(o.createdAt);
       const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
       if (!monthlyGroups[key]) monthlyGroups[key] = { sales: 0, orders: 0 };
@@ -80,7 +118,7 @@ export default async function ReportsPage() {
       orders: monthlyGroups[key].orders
     })).reverse();
 
-    const transactions = orders.map((o: any) => ({
+    const transactions = orders.map((o: OrderWithDetails) => ({
       id: o.id,
       orderNumber: o.orderNumber,
       customerName: o.user?.name || 'Guest User',
@@ -132,10 +170,10 @@ export default async function ReportsPage() {
     let grossRevenue = 0;
     let costOfGoods = 0;
 
-    const transactions = orders.map((o: any) => {
+    const transactions = orders.map((o: OrderWithDetails) => {
       const revenue = Number(o.grandTotal);
       let cost = 0;
-      o.items.forEach((item: any) => {
+      o.items.forEach((item) => {
         const itemCost = Number(item.product?.costPrice || item.product?.price || 0) * item.quantity;
         cost += itemCost;
       });
@@ -159,7 +197,7 @@ export default async function ReportsPage() {
 
     // Group chart data by month
     const monthlyGroups: Record<string, { revenue: number; cost: number; profit: number }> = {};
-    transactions.forEach((t: any) => {
+    transactions.forEach((t: { date: string; revenue: number; cost: number; profit: number }) => {
       const d = new Date(t.date);
       const key = `${months[d.getMonth()]} ${d.getFullYear()}`;
       if (!monthlyGroups[key]) monthlyGroups[key] = { revenue: 0, cost: 0, profit: 0 };
@@ -212,8 +250,8 @@ export default async function ReportsPage() {
 
   // 3. PRODUCTS REPORT DATA
   const productSalesMap: Record<string, { unitsSold: number; revenue: number }> = {};
-  orders.forEach((o: any) => {
-    o.items.forEach((item: any) => {
+  orders.forEach((o: OrderWithDetails) => {
+    o.items.forEach((item) => {
       const pid = item.productId;
       if (!productSalesMap[pid]) productSalesMap[pid] = { unitsSold: 0, revenue: 0 };
       productSalesMap[pid].unitsSold += item.quantity;
@@ -221,7 +259,7 @@ export default async function ReportsPage() {
     });
   });
 
-  const productTableData = products.map((p: any) => {
+  const productTableData = products.map((p: ProductWithInventory) => {
     const sales = productSalesMap[p.id] || { unitsSold: 0, revenue: 0 };
     return {
       id: p.id,
@@ -233,13 +271,13 @@ export default async function ReportsPage() {
       stock: p.inventory?.quantityOnHand || 0,
       status: p.status
     };
-  }).sort((a: any, b: any) => b.unitsSold - a.unitsSold);
+  }).sort((a, b) => b.unitsSold - a.unitsSold);
 
   const bestSellerProduct = productTableData[0]?.name || 'Fresh Organic Bananas';
-  const totalUnitsSold = productTableData.reduce((sum: number, p: any) => sum + p.unitsSold, 0) || 1240;
-  const outOfStockCount = products.filter((p: any) => !p.inventory || p.inventory.quantityOnHand <= 0).length;
+  const totalUnitsSold = productTableData.reduce((sum: number, p) => sum + p.unitsSold, 0) || 1240;
+  const outOfStockCount = products.filter((p: ProductWithInventory) => !p.inventory || p.inventory.quantityOnHand <= 0).length;
 
-  const productChartData = productTableData.slice(0, 8).map((p: any) => ({
+  const productChartData = productTableData.slice(0, 8).map((p) => ({
     name: p.name,
     unitsSold: p.unitsSold || Math.floor(Math.random() * 40) + 10,
     revenue: p.revenue || Math.floor(Math.random() * 400) + 100
@@ -267,16 +305,16 @@ export default async function ReportsPage() {
   };
 
   // 4. INVENTORY REPORT DATA
-  const totalInventoryValue = products.reduce((sum: number, p: any) => {
+  const totalInventoryValue = products.reduce((sum: number, p: ProductWithInventory) => {
     const qty = p.inventory?.quantityOnHand || 0;
     const cost = Number(p.costPrice || p.price);
     return sum + (qty * cost);
   }, 0);
 
-  const lowStockCount = products.filter((p: any) => p.inventory && p.inventory.quantityOnHand <= p.inventory.reorderLevel).length;
+  const lowStockCount = products.filter((p: ProductWithInventory) => p.inventory && p.inventory.quantityOnHand <= p.inventory.reorderLevel).length;
 
   const categoryValueMap: Record<string, { value: number; count: number }> = {};
-  products.forEach((p: any) => {
+  products.forEach((p: ProductWithInventory) => {
     const categoryName = p.category?.name || 'Uncategorized';
     if (!categoryValueMap[categoryName]) categoryValueMap[categoryName] = { value: 0, count: 0 };
     const qty = p.inventory?.quantityOnHand || 0;
@@ -285,13 +323,13 @@ export default async function ReportsPage() {
     categoryValueMap[categoryName].count += 1;
   });
 
-  const inventoryChartData = Object.keys(categoryValueMap).map((cat: any) => ({
+  const inventoryChartData = Object.keys(categoryValueMap).map((cat: string) => ({
     category: cat,
     value: Number(categoryValueMap[cat].value.toFixed(2)),
     count: categoryValueMap[cat].count
   }));
 
-  const inventoryTableData = products.map((p: any) => ({
+  const inventoryTableData = products.map((p: ProductWithInventory) => ({
     id: p.id,
     name: p.name,
     sku: p.sku,
@@ -326,14 +364,14 @@ export default async function ReportsPage() {
 
   // 5. CUSTOMERS REPORT DATA
   const customerOrdersMap: Record<string, { count: number; spend: number }> = {};
-  orders.forEach((o: any) => {
+  orders.forEach((o: OrderWithDetails) => {
     const cid = o.userId;
     if (!customerOrdersMap[cid]) customerOrdersMap[cid] = { count: 0, spend: 0 };
     customerOrdersMap[cid].count += 1;
     customerOrdersMap[cid].spend += Number(o.grandTotal);
   });
 
-  const customerTableData = customersList.map((c: any) => {
+  const customerTableData = customersList.map((c: CustomerUser) => {
     const ordersStats = customerOrdersMap[c.id] || { count: 0, spend: 0 };
     return {
       id: c.id,
@@ -344,12 +382,12 @@ export default async function ReportsPage() {
       totalSpent: Number(ordersStats.spend.toFixed(2)),
       status: c.status
     };
-  }).sort((a: any, b: any) => b.totalSpent - a.totalSpent);
+  }).sort((a, b) => b.totalSpent - a.totalSpent);
 
-  const activeCustomers = customerTableData.filter((c: any) => c.ordersCount > 0).length;
-  const returningCount = customerTableData.filter((c: any) => c.ordersCount > 1).length;
+  const activeCustomers = customerTableData.filter((c) => c.ordersCount > 0).length;
+  const returningCount = customerTableData.filter((c) => c.ordersCount > 1).length;
   const returningRate = customerTableData.length > 0 ? (returningCount / customerTableData.length) * 100 : 64.0;
-  const avgLtv = customerTableData.reduce((sum: number, c: any) => sum + c.totalSpent, 0) / (customerTableData.length || 1);
+  const avgLtv = customerTableData.reduce((sum: number, c) => sum + c.totalSpent, 0) / (customerTableData.length || 1);
 
   customersReport = {
     summary: {
