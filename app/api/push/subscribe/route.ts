@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
+import type { PushSubscriptionData } from '@/types/domain';
 
-// Declare a global variable to persist subscriptions in memory during development
+// Persist subscriptions in memory during development
 const globalForSubscriptions = globalThis as unknown as {
-  pushSubscriptions: any[];
+  pushSubscriptions: PushSubscriptionData[];
 };
 
 if (!globalForSubscriptions.pushSubscriptions) {
@@ -11,15 +12,15 @@ if (!globalForSubscriptions.pushSubscriptions) {
 
 export async function POST(req: Request) {
   try {
-    const subscription = await req.json();
-    
+    const subscription = await req.json() as PushSubscriptionData;
+
     if (!subscription || !subscription.endpoint) {
       return NextResponse.json({ error: 'Invalid subscription object' }, { status: 400 });
     }
 
     // Check if subscription already exists
     const exists = globalForSubscriptions.pushSubscriptions.some(
-      (sub: any) => sub.endpoint === subscription.endpoint
+      (sub) => sub.endpoint === subscription.endpoint,
     );
 
     if (!exists) {
@@ -28,9 +29,10 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true, count: globalForSubscriptions.pushSubscriptions.length });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : 'Unknown error';
     console.error('Error in push subscribe API:', e);
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import type { Session } from 'next-auth';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Search, Bell, User, Menu, X } from 'lucide-react';
 import { useCart } from '@/components/site/cart-provider';
@@ -17,7 +18,7 @@ const navItems = [
   { href: '/faq', label: 'FAQ' },
 ];
 
-export function Navbar({ session }: { session: any }) {
+export function Navbar({ session }: { session: Session | null }) {
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { cart } = useCart();

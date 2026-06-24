@@ -2,8 +2,12 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { formatCurrency } from '@/lib/site';
+import type { Prisma } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
+
+// Type for a product row as returned by Prisma in this page
+type CategoryProduct = Prisma.ProductGetPayload<Record<string, never>>;
 
 export default async function CategoryDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
@@ -44,7 +48,7 @@ export default async function CategoryDetailsPage({ params }: { params: Promise<
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {category.products.map((product: any) => (
+              {category.products.map((product: CategoryProduct) => (
                 <article key={product.id} className="group overflow-hidden rounded-[20px] border border-border bg-white p-6 shadow-enterprise transition-all duration-300 hover:-translate-y-1">
                   {product.imageUrl ? (
                     <img

@@ -130,6 +130,7 @@ export default function ReportsDashboard({
   const [dateRange, setDateRange] = useState('30days');
 
   // Export handlers
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const exportToCSV = (data: any[], filename: string) => {
     if (data.length === 0) return;
     const headers = Object.keys(data[0]);
@@ -153,6 +154,7 @@ export default function ReportsDashboard({
     document.body.removeChild(link);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const exportToExcel = (data: any[], filename: string) => {
     if (data.length === 0) return;
     const headers = Object.keys(data[0]);
@@ -202,6 +204,7 @@ export default function ReportsDashboard({
     exportToExcel(getExportData(), `${activeTab}_report_${dateRange}`);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const filteredData = (data: any[], fields: string[]) => {
     return data.filter(row =>
       fields.some(field =>

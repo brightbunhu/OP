@@ -148,10 +148,10 @@ function checkRole(userRoles: string[], minimumRole: 'CUSTOMER' | 'SALES' | 'MAN
 // Tool Implementation Registry
 export async function executeAiTool(
   name: string,
-  args: any,
+  args: Record<string, unknown>,
   userId: string | null,
   userRoles: string[]
-): Promise<any> {
+): Promise<unknown> {
   // Guard checking for user session when accessing user-specific resources
   const requireUser = () => {
     if (!userId) throw new Error('User authentication required. Please log in first to use this feature.');
@@ -294,7 +294,7 @@ export async function executeAiTool(
       });
 
       const totalRevenue = activeOrders.reduce((sum, o) => sum + Number(o.grandTotal), 0);
-      const statuses = activeOrders.reduce((acc: any, o) => {
+      const statuses = activeOrders.reduce((acc: Record<string, number>, o) => {
         acc[o.status] = (acc[o.status] || 0) + 1;
         return acc;
       }, {});

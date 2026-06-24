@@ -2,8 +2,14 @@ import { NextResponse } from 'next/server';
 import { requireMinimumRole } from '@/lib/auth/guards';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '@/lib/product-service';
 import { productSchema, productFiltersSchema } from '@/lib/validators/product';
+import type { Prisma } from '@prisma/client';
 
-function serializeProduct(product: any) {
+type ProductBase = Prisma.ProductGetPayload<Record<string, never>>;
+type ProductWithOptionalCategory = ProductBase & {
+  category?: { id: string; name: string } | null;
+};
+
+function serializeProduct(product: ProductWithOptionalCategory) {
   return {
     id: product.id,
     name: product.name,

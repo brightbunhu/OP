@@ -3,6 +3,9 @@ import Credentials from 'next-auth/providers/credentials';
 import { prisma } from '@/lib/prisma';
 import { verifyPassword } from '@/lib/auth/password';
 import { loginSchema } from '@/lib/auth/validators';
+import type { Prisma } from '@prisma/client';
+
+type UserWithRoles = Prisma.UserGetPayload<{ include: { roles: true } }>;
 
 export const authConfig = {
   pages: {
@@ -27,10 +30,16 @@ export const authConfig = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-          include: { roles: true },
-        });
+        let user: UserWithRoles | null = null;
+        try {
+          user = await prisma.user.findUnique({
+            where: { email: parsed.data.email },
+            include: { roles: true },
+          });
+        } catch (error) {
+          console.error('Failed to fetch user:', error);
+          return null;
+        }
 
         if (!user || !user.passwordHash || user.deletedAt || user.status !== 'ACTIVE') {
           return null;

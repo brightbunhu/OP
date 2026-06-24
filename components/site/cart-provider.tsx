@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import type { Session } from 'next-auth';
 import { calculateCartTotals, type CartItemWithProduct, type CartResponse } from '@/lib/cart';
 import {
   addToCartAction,
@@ -35,7 +36,7 @@ const initialCart: CartResponse = {
   totals: calculateCartTotals([]),
 };
 
-export function CartProvider({ children, session }: { children: React.ReactNode; session: any }) {
+export function CartProvider({ children, session }: { children: React.ReactNode; session: Session | null }) {
   const [cart, setCart] = useState<CartResponse>(initialCart);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

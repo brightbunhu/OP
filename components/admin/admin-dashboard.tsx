@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import type { ProductRow, Category, RoleRef } from '@/types/domain';
 import {
   Users, Shield, Settings, BarChart3, Activity,
   AlertCircle, Trash2, Plus, RefreshCw,
@@ -72,8 +73,8 @@ export default function AdminDashboard({ initialUsers, initialRoles, initialAudi
   });
 
   // Products and Category States
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [productSearch, setProductSearch] = useState('');
   const [showProductForm, setShowProductForm] = useState(false);
@@ -178,7 +179,7 @@ export default function AdminDashboard({ initialUsers, initialRoles, initialAudi
           name: res.user.name,
           email: res.user.email,
           status: res.user.status,
-          roles: res.user.roles.map((r: any) => ({ id: r.id, name: r.name })),
+          roles: res.user.roles.map((r: RoleRef) => ({ id: r.id, name: r.name })),
           createdAt: new Date().toISOString(),
           _count: { orders: 0 },
         };
@@ -275,7 +276,7 @@ export default function AdminDashboard({ initialUsers, initialRoles, initialAudi
           name: res.user.name,
           email: res.user.email,
           status: res.user.status,
-          roles: res.user.roles.map((r: any) => ({ id: r.id, name: r.name })),
+          roles: res.user.roles.map((r: RoleRef) => ({ id: r.id, name: r.name })),
           createdAt: new Date().toISOString(),
           _count: { orders: 0 },
         };

@@ -1,11 +1,17 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import type { Category } from '@/types/domain';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Categories | OP Supermarket',
   description: 'Shop grocery categories to find fresh produce, bakery items, wellness products, and more.',
+};
+
+// Extend Category with the product count relation returned by Prisma
+type CategoryWithCount = Category & {
+  _count: { products: number };
 };
 
 export default async function CategoriesPage() {
@@ -24,7 +30,7 @@ export default async function CategoriesPage() {
       },
     },
     orderBy: { name: 'asc' },
-  });
+  }) as CategoryWithCount[];
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -38,7 +44,7 @@ export default async function CategoriesPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {dbCategories.map((category) => (
+          {dbCategories.map((category: CategoryWithCount) => (
             <article key={category.slug} className="rounded-3xl border border-border bg-card p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
               <div className="h-48 rounded-3xl bg-muted p-6 text-sm font-semibold text-muted-foreground flex items-center justify-center overflow-hidden">
                 {category.imageUrl ? (
@@ -68,4 +74,3 @@ export default async function CategoriesPage() {
     </section>
   );
 }
-

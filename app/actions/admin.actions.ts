@@ -6,7 +6,7 @@ import { requireMinimumRole } from '@/lib/auth/guards';
 
 export async function updateUserStatus(userId: string, status: string) {
   await requireMinimumRole('ADMIN');
-  const user = await prisma.user.update({ where: { id: userId }, data: { status: status as any } });
+  const user = await prisma.user.update({ where: { id: userId }, data: { status: status as 'ACTIVE' | 'SUSPENDED' | 'DELETED' | 'INVITED' } });
   revalidatePath('/admin');
   return { success: true, user };
 }
