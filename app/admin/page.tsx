@@ -64,7 +64,7 @@ export default async function AdminPage() {
   // Aggregate stats
   const [totalOrders, totalRevenue, totalProducts] = await Promise.all([
     prisma.order.count(),
-    prisma.order.aggregate({ _sum: { grandTotal: true } }).then(r => Number(r._sum.grandTotal ?? 0)),
+    prisma.order.aggregate({ _sum: { grandTotal: true } }).then((r: any) => Number(r._sum.grandTotal ?? 0)),
     prisma.product.count({ where: { deletedAt: null } }),
   ]);
 
