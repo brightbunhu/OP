@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
     let loopCount = 0;
     const maxLoops = 6;
-    let assistantMessage: any = null;
+    let assistantMessage: { content: string; tool_calls?: Array<{ id: string; function: { name: string; arguments: string } }> } | null = null;
 
     while (loopCount < maxLoops) {
       loopCount++;
@@ -101,6 +101,10 @@ export async function POST(req: Request) {
 
       assistantMessage = choice.message;
 
+      if (!assistantMessage) {
+        return NextResponse.json({ error: 'No message returned from AI provider' }, { status: 502 });
+      }
+
       // 3. Check for Tool Calls
       if (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0) {
         // Push the assistant message containing the tool request to history
@@ -108,7 +112,7 @@ export async function POST(req: Request) {
 
         // Execute all tool calls concurrently
         const toolResults = await Promise.all(
-          assistantMessage.tool_calls.map(async (toolCall: any) => {
+          assistantMessage.tool_calls.map(async (toolCall: { id: string; function: { name: string; arguments: string } }) => {
             const { name, arguments: rawArgs } = toolCall.function;
             let parsedArgs = {};
             try {
@@ -141,12 +145,13 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
-      message: assistantMessage.content,
+      message: assistantMessage?.content || 'No response from AI',
       role: 'assistant'
     });
 
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error('Error in AI Chat Route:', e);
-    return NextResponse.json({ error: e.message || 'Internal server error occurred.' }, { status: 500 });
+    const errorMessage = e instanceof Error ? e.message : 'Internal server error occurred.';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
