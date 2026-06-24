@@ -68,8 +68,8 @@ export default async function AdminPage() {
     prisma.product.count({ where: { deletedAt: null } }),
   ]);
 
-  const activeUsers = rawUsers.filter(u => u.status === 'ACTIVE').length;
-  const suspendedUsers = rawUsers.filter(u => u.status === 'SUSPENDED').length;
+  const activeUsers = rawUsers.filter((u: any) => u.status === 'ACTIVE').length;
+  const suspendedUsers = rawUsers.filter((u: any) => u.status === 'SUSPENDED').length;
 
   const stats: AdminStats = {
     totalUsers: rawUsers.length,
