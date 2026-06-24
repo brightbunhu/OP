@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Categories | OP Supermarket',
   description: 'Shop grocery categories to find fresh produce, bakery items, wellness products, and more.',
