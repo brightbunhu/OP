@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { PRODUCT_STATUSES, ProductStatus } from '@/lib/product-constants';
 
@@ -10,7 +9,7 @@ export type ProductFilters = {
 };
 
 export async function getProducts(filters: ProductFilters = {}) {
-  const andFilters: Prisma.ProductWhereInput[] = [];
+  const andFilters: any[] = [];
 
   if (filters.categoryId) {
     andFilters.push({ categoryId: filters.categoryId });
@@ -65,10 +64,10 @@ export async function createProduct(data: {
   barcode?: string;
   description?: string;
   imageUrl?: string;
-  price: Prisma.Decimal | string | number;
-  compareAtPrice?: Prisma.Decimal | string | number;
-  costPrice?: Prisma.Decimal | string | number;
-  taxRate: Prisma.Decimal | string | number;
+  price: string | number;
+  compareAtPrice?: string | number;
+  costPrice?: string | number;
+  taxRate: string | number;
   weightGrams?: number;
   status: ProductStatus;
   isFeatured: boolean;
@@ -82,10 +81,10 @@ export async function createProduct(data: {
       barcode: data.barcode,
       description: data.description,
       imageUrl: data.imageUrl,
-      price: new Prisma.Decimal(data.price),
-      compareAtPrice: data.compareAtPrice ? new Prisma.Decimal(data.compareAtPrice) : undefined,
-      costPrice: data.costPrice ? new Prisma.Decimal(data.costPrice) : undefined,
-      taxRate: new Prisma.Decimal(data.taxRate),
+      price: typeof data.price === 'string' ? parseFloat(data.price) : data.price,
+      compareAtPrice: data.compareAtPrice ? (typeof data.compareAtPrice === 'string' ? parseFloat(data.compareAtPrice) : data.compareAtPrice) : undefined,
+      costPrice: data.costPrice ? (typeof data.costPrice === 'string' ? parseFloat(data.costPrice) : data.costPrice) : undefined,
+      taxRate: typeof data.taxRate === 'string' ? parseFloat(data.taxRate) : data.taxRate,
       weightGrams: data.weightGrams,
       status: data.status,
       isFeatured: data.isFeatured,
@@ -101,10 +100,10 @@ export async function updateProduct(id: string, data: Partial<{
   barcode?: string;
   description?: string;
   imageUrl?: string;
-  price: Prisma.Decimal | string | number;
-  compareAtPrice?: Prisma.Decimal | string | number;
-  costPrice?: Prisma.Decimal | string | number;
-  taxRate: Prisma.Decimal | string | number;
+  price: string | number;
+  compareAtPrice?: string | number;
+  costPrice?: string | number;
+  taxRate: string | number;
   weightGrams?: number;
   status: ProductStatus;
   isFeatured: boolean;
@@ -114,10 +113,10 @@ export async function updateProduct(id: string, data: Partial<{
     where: { id },
     data: {
       ...data,
-      price: data.price !== undefined ? new Prisma.Decimal(data.price) : undefined,
-      compareAtPrice: data.compareAtPrice !== undefined ? new Prisma.Decimal(data.compareAtPrice) : undefined,
-      costPrice: data.costPrice !== undefined ? new Prisma.Decimal(data.costPrice) : undefined,
-      taxRate: data.taxRate !== undefined ? new Prisma.Decimal(data.taxRate) : undefined,
+      price: data.price !== undefined ? (typeof data.price === 'string' ? parseFloat(data.price) : data.price) : undefined,
+      compareAtPrice: data.compareAtPrice !== undefined ? (typeof data.compareAtPrice === 'string' ? parseFloat(data.compareAtPrice) : data.compareAtPrice) : undefined,
+      costPrice: data.costPrice !== undefined ? (typeof data.costPrice === 'string' ? parseFloat(data.costPrice) : data.costPrice) : undefined,
+      taxRate: data.taxRate !== undefined ? (typeof data.taxRate === 'string' ? parseFloat(data.taxRate) : data.taxRate) : undefined,
     },
   });
 }

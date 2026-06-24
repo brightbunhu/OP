@@ -2,11 +2,26 @@ import { NextResponse } from 'next/server';
 import { requireMinimumRole } from '@/lib/auth/guards';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '@/lib/product-service';
 import { productSchema, productFiltersSchema } from '@/lib/validators/product';
-import type { Prisma } from '@prisma/client';
 
-type ProductBase = Prisma.ProductGetPayload<Record<string, never>>;
-type ProductWithOptionalCategory = ProductBase & {
+type ProductWithOptionalCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  barcode: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  categoryId: string;
   category?: { id: string; name: string } | null;
+  price: { toNumber: () => number } | number;
+  compareAtPrice: { toNumber: () => number } | number | null;
+  costPrice: { toNumber: () => number } | number | null;
+  taxRate: { toNumber: () => number } | number;
+  weightGrams: number | null;
+  status: string;
+  isFeatured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 function serializeProduct(product: ProductWithOptionalCategory) {

@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 
 export type ShippingAddress = {
   fullName: string;
@@ -23,26 +22,26 @@ export async function placeOrder(userId: string, shippingAddress: ShippingAddres
 
   // Calculate totals
   const subtotal = cart.items.reduce(
-    (sum, item) => sum.add(new Prisma.Decimal(item.unitPrice).mul(item.quantity)),
-    new Prisma.Decimal(0),
+    (sum, item) => sum + (Number(item.unitPrice) * item.quantity),
+    0,
   );
 
   const taxTotal = cart.items.reduce((sum, item) => {
-    const itemTotal = new Prisma.Decimal(item.unitPrice).mul(item.quantity);
-    const taxRate = new Prisma.Decimal(item.product.taxRate).div(100);
-    return sum.add(itemTotal.mul(taxRate));
-  }, new Prisma.Decimal(0));
+    const itemTotal = Number(item.unitPrice) * item.quantity;
+    const taxRate = Number(item.product.taxRate) / 100;
+    return sum + (itemTotal * taxRate);
+  }, 0);
 
   const totalQuantity = cart.items.reduce((n, item) => n + item.quantity, 0);
 
-  let discountTotal = new Prisma.Decimal(0);
+  let discountTotal = 0;
   if (totalQuantity >= 5) {
-    discountTotal = subtotal.mul(0.05);
-  } else if (subtotal.gte(100)) {
-    discountTotal = subtotal.mul(0.1);
+    discountTotal = subtotal * 0.05;
+  } else if (subtotal >= 100) {
+    discountTotal = subtotal * 0.1;
   }
 
-  const grandTotal = subtotal.sub(discountTotal).add(taxTotal);
+  const grandTotal = subtotal - discountTotal + taxTotal;
 
   // Generate a readable order number
   const orderNumber = `OP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
@@ -60,9 +59,9 @@ export async function placeOrder(userId: string, shippingAddress: ShippingAddres
         subtotal,
         discountTotal,
         taxTotal,
-        shippingTotal: new Prisma.Decimal(0),
+        shippingTotal: 0,
         grandTotal,
-        shippingAddress: shippingAddress as unknown as Prisma.InputJsonValue,
+        shippingAddress: shippingAddress as any,
         items: {
           create: cart.items.map((item) => ({
             productId: item.productId,
@@ -70,10 +69,8 @@ export async function placeOrder(userId: string, shippingAddress: ShippingAddres
             sku: item.product.sku,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
-            taxTotal: new Prisma.Decimal(item.unitPrice)
-              .mul(item.quantity)
-              .mul(new Prisma.Decimal(item.product.taxRate).div(100)),
-            lineTotal: new Prisma.Decimal(item.unitPrice).mul(item.quantity),
+            taxTotal: Number(item.unitPrice) * item.quantity * (Number(item.product.taxRate) / 100),
+            lineTotal: Number(item.unitPrice) * item.quantity,
           })),
         },
       },
