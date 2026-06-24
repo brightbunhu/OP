@@ -42,7 +42,7 @@ export default async function CategoryDetailsPage({ params }: { params: Promise<
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {category.products.map((product) => (
+              {category.products.map((product: any) => (
                 <article key={product.id} className="group overflow-hidden rounded-[20px] border border-border bg-white p-6 shadow-enterprise transition-all duration-300 hover:-translate-y-1">
                   {product.imageUrl ? (
                     <img
