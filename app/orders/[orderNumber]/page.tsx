@@ -143,7 +143,17 @@ export default async function OrderTrackingPage({
               <h2 className="text-lg font-semibold text-foreground">Order Items</h2>
             </div>
             <div className="divide-y divide-border">
-              {order.items.map((item) => (
+              {order.items.map((item: {
+                id: string;
+                productName: string;
+                sku: string;
+                quantity: number;
+                lineTotal: { toNumber: () => number } | number;
+                unitPrice: { toNumber: () => number } | number;
+                product: {
+                  imageUrl: string | null;
+                } | null;
+              }) => (
                 <div key={item.id} className="flex items-center gap-4 p-5">
                   {item.product?.imageUrl ? (
                     <img
